@@ -1,7 +1,12 @@
+# import sys
+# import os
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, model_validator, ValidationError
 from typing import List
-from app import insert
+from app import db_dml
 from db.models import Jobs, Departments, Hired_Employees
 import os
 import logging
@@ -54,7 +59,7 @@ model_mapping = {
 @router.post("/insert/{table}")
 
 def insertFromBatch(table: str, data: list[dict[str, Any]]):
-    if not (1 <= len(data) >= 1000):
+    if not (1 <= len(data) <= 1000):
         raise HTTPException(status_code=400, detail=f"Batch must be between 1 and 1000")
     
     if table not in model_mapping:
@@ -66,11 +71,20 @@ def insertFromBatch(table: str, data: list[dict[str, Any]]):
     for item in data:
         try:
             validated = schema_class(**item)
-            valid_items.append(validated)
+            model_instance = model_class(**validated.model_dump())
+            valid_items.append(model_instance)
         except ValidationError as e:
             logging.warning(f"[{table}] Null value in column {item} | Error: {e}")
 
     if not valid_items:
         raise HTTPException(status_code=400, detail="There is no valid rows to insert")
 
-    return insert.insert_into_db(valid_items, model_class)
+    return db_dml.insert_into_db(valid_items, model_class)
+
+
+# def main():
+#     results = insertFromBatch("jobs", c)
+#     return print(results.items)
+
+# if __name__ == "__main__":
+#     main()

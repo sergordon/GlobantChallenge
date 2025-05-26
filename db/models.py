@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from db.database import Base
 
 class Jobs(Base):
@@ -16,5 +16,5 @@ class Hired_Employees(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     datetime = Column(String, nullable=False)
-    department_id = Column(Integer, nullable=False)
-    job_id = Column(Integer, nullable=False)
+    department_id = Column(Integer, ForeignKey(Departments.id), nullable=False)
+    job_id = Column(Integer, ForeignKey(Jobs.id), nullable=False)

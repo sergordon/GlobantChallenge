@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Big Data Migration UI</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    form { margin-bottom: 2em; }
+    label { font-weight: bold; }
+    textarea, input[type="file"] { width: 100%; max-width: 700px; }
+  </style>
+</head>
+<body>
+  <h1>Big Data Migration UI</h1>
+
+  <br><br>
+  <h2>Upload CSV</h2>
+  <!-- Table selection -->
+  <label for="table_select">Select Table for CSV:</label>
+  <select id="table_select" onchange="updateCsvTableInput()">
+    <option value="jobs">Jobs</option>
+    <option value="departments">Departments</option>
+    <option value="hired_employees">Hired Employees</option>
+  </select>
+
+  <!-- Upload CSV -->  
+  <form action="/upload-csv/" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="table_name" id="csv_table_input", value="jobs">
+    <input type="file" name="file" accept=".csv" required><br><br>
+    <button type="submit">Upload CSV</button>
+  </form>
+
+  <script>
+  function updateCsvTableInput() {
+    const selectedTable = document.getElementById("table_select").value;
+    const input = document.getElementById("csv_table_input");
+    input.value = selectedTable;
+    console.log("Updated table_name:", selectedTable);  // <-- helpful log
+  }
+  window.onload = updateCsvTableInput; // set default on load
+  </script>
+
+  <!-- Upload JSON -->
+  <h2>Upload JSON</h2>
+   <!-- Table selection -->
+   <label for="table_select_json">Select Table for JSON:</label>
+   <select name="table_name", id="table_select_json" onchange="updateCsvTableInput(); updatePlaceholder();">
+     <option value="jobs">Jobs</option>
+     <option value="departments">Departments</option>
+     <option value="hired_employees">Hired Employees</option>
+   </select>
+
+  <form action="/upload-json/" method="post">
+    <input type="hidden" name="table_name" id="json_table_input">
+    <textarea id="json_input" name="data" rows="8" placeholder=""></textarea><br>
+    <button type="submit">Upload JSON</button>
+  </form>
+
+  <script>
+    function updateJsonTableInput() {
+      const selectedTable = document.getElementById("table_select_json").value;
+      document.getElementById("json_table_input").value = selectedTable;
+    }
+    window.onload = updateJsonTableInput; // set default on load
+  </script>
+
+  <!-- Backup -->
+  <h2>Backup</h2>
+  <form action="/backup/" method="post">
+    <label for="backup_table">Select table to backup:</label>
+    <select name="table_name" id="backup_table">
+      <option value="">-- Full Database --</option>
+      <option value="jobs">Jobs</option>
+      <option value="departments">Departments</option>
+      <option value="hired_employees">Hired Employees</option>
+    </select>
+    <button type="submit">Start Backup</button>
+  </form>
+
+  <!-- Restore -->
+  <h2>Restore</h2>
+<form action="/restore/" method="post">
+  <label for="restore_table">Select table to restore:</label>
+  <select name="table_name" id="restore_table">
+    <option value="">-- Full Database --</option>
+    <option value="jobs">Jobs</option>
+    <option value="departments">Departments</option>
+    <option value="hired_employees">Hired Employees</option>
+  </select>
+  <button type="submit">Start Restore</button>
+</form>
+
+  <script>
+    const placeholderMap = {
+      "jobs": `[{"id":1, "job": "Data Cloud Engineer"}]`,
+      "departments": `[{"id":1, "department": "TI"}]`,
+      "hired_employees": `[{"id":1, "name": "Sergio Gordon", "datetime": "2025-06-30T15:00:00Z", "department_id": 1, "job_id": 1}]`
+    };
+
+    function updatePlaceholder() {
+      const selected = document.getElementById("table_select_json").value;
+      document.getElementById("json_input").placeholder = placeholderMap[selected];
+      document.getElementById("json_table_input").value = selected;
+    }
+
+    // Initialize on page load
+    window.onload = updatePlaceholder;
+  </script>
+</body>
+</html>

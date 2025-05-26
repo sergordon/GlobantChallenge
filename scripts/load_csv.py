@@ -20,42 +20,51 @@ TB_SCHEMAS = {
     'hired_employees': ['id', 'name', 'datetime', 'department_id', 'job_id']
 }
 
-def check_rows_with_nulls(row):
+def check_valid_rows(row):
     for key, value in row.items():
         if pd.isna(value) or str(value).strip() == '':
-            return False, f"Null value in column '{key}'"
+            return False, f"Null or empty value in column '{key}'"
     return True, ""
 
 
 def load_data_to_db(path, tablename, columns):
-    rows_with_nulls = []
-    rows_without_nulls = []
+    invalid_rows = []
+    valid_rows = []
+    results_msg = []
     df = pd.read_csv(path, header=None, names=columns)
 
     #Check for null or empty values in each row
     for row in df.itertuples(index=False):
         row_dic = row._asdict()
-        is_not_null_row, error_message = check_rows_with_nulls(row_dic)
-        if is_not_null_row:
-            rows_without_nulls.append(row_dic)
+        is_valid_row, error_message = check_valid_rows(row_dic)
+        if is_valid_row:
+            valid_rows.append(row_dic)
         else:
             row_dic["error"] = error_message
-            rows_with_nulls.append(row_dic)
+            invalid_rows.append(row_dic)
+            results_msg.append(error_message)
     
-    if rows_without_nulls:
+    if valid_rows:
         try:
-            pd.DataFrame(rows_without_nulls).to_sql(tablename, engine, if_exists='append', index=False)
-            print(f"[Success]: {len(rows_without_nulls)} records loaded from {path} into table {tablename}")
+            pd.DataFrame(valid_rows).to_sql(tablename, engine, if_exists='append', index=False)
+            result_msg = f"[Success]: {len(valid_rows)} records loaded from {path} into table {tablename}"
+            print(result_msg)
         except SQLAlchemyError as e_sql:
-            print(f"[Error]: Failed to load {path}: {e_sql}")
+            result_msg = f"[Error]: Failed to load {path}: {e_sql}"            
+            print(result_msg)
         except Exception as e:
-            print(f"[Error]: General error {e}")
+            result_msg = f"[Error]: General error {e}"
+            print(result_msg)
+        results_msg.append(result_msg)
 
-    if rows_with_nulls:
+    if invalid_rows:
         log_file = os.path.join(LOG_DIR, f"Errors_historic_load_of_{tablename}.log")
-        pd.DataFrame(rows_with_nulls).to_csv(log_file, index=False)
-        print(f"[WARN]: {len(rows_with_nulls)} invalid records logged to {log_file}")
+        pd.DataFrame(invalid_rows).to_csv(log_file, index=False)
+        result_msg = f"[WARN]: {len(invalid_rows)} invalid records logged to {log_file}"
+        print(result_msg)
+        results_msg.append(result_msg)
 
+    return {"result_msg": results_msg}
 
 def main():
     for filename in os.listdir(DATA_DIR):

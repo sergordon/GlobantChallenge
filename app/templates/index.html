@@ -24,7 +24,7 @@
   </select>
 
   <!-- Upload CSV -->  
-  <form action="/upload-csv/" method="post" enctype="multipart/form-data">
+  <form action="/upload-csv/" method="post" enctype="multipart/form-data" onsubmit="updateCsvTableInput()">
     <input type="hidden" name="table_name" id="csv_table_input", value="jobs">
     <input type="file" name="file" accept=".csv" required><br><br>
     <button type="submit">Upload CSV</button>
@@ -106,5 +106,56 @@
     // Initialize on page load
     window.onload = updatePlaceholder;
   </script>
+
+<h2>Reports</h2>
+<label for="datefrom">From:</label>
+<input type="date" id="datefrom" value="2021-01-01">
+<label for="dateto">To:</label>
+<input type="date" id="dateto" value="2021-12-31">
+<button onclick="refreshReports()">Load Reports</button>
+
+<script>
+  function loadReport(endpoint, tableId, datefrom, dateto) {
+    const params = `?datefrom=${datefrom}&dateto=${dateto}`;
+  
+    fetch(endpoint + params)
+      .then(res => res.json())
+      .then(data => {
+        const table = document.getElementById(tableId);
+        table.innerHTML = "";
+  
+        if (data.length === 0) {
+          table.innerHTML = "<tr><td>No data</td></tr>";
+          return;
+        }
+  
+        const headers = Object.keys(data[0]);
+        table.innerHTML += "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
+  
+        data.forEach(row => {
+          table.innerHTML += "<tr>" + headers.map(h => `<td>${row[h]}</td>`).join('') + "</tr>";
+        });
+      });
+  }
+  
+  function refreshReports() {
+    const datefrom = document.getElementById("datefrom").value;
+    const dateto = document.getElementById("dateto").value;
+  
+    loadReport("/report/quarterly-hiring", "quarterly-report", datefrom, dateto);
+    loadReport("/report/above-average-hiring", "above-avg-report", datefrom, dateto);
+  }
+  
+  // Load reports on page load with defaults
+  window.onload = refreshReports;
+  </script>
+  
+  <h3>Quarterly Hiring Report</h3>
+  <table border="1" id="quarterly-report"></table>
+  
+  <h3>Departments Hiring Above Average</h3>
+  <table border="1" id="above-avg-report"></table>
+  
+
 </body>
 </html>

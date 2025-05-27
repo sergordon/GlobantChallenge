@@ -3,159 +3,407 @@
 <head>
   <meta charset="UTF-8">
   <title>Big Data Migration UI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
   <style>
-    body { font-family: Arial, sans-serif; margin: 2em; }
-    form { margin-bottom: 2em; }
-    label { font-weight: bold; }
-    textarea, input[type="file"] { width: 100%; max-width: 700px; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 2em;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 1em;
+      color: #e0e6ec;
+    }
+    h2, h3 {
+      color: #343a40;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background-color: #343a40;
+      color: white;
+      padding: 1em;
+      text-align: center;
+      z-index: 999;
+    }
+    .section {
+      background: #fff;
+      padding: 1.5em;
+      margin-bottom: 2em;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    label {
+      font-weight: bold;
+      margin-top: 1em;
+      display: block;
+    }
+    select {
+      width: 100%;
+      max-width: 200px;
+      padding: 0.6em;
+      margin: 0.5em 0 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    input[type="file"] {
+      width: 100%;
+      max-width: 300px;
+      padding: 0.6em;
+      margin: 0.5em 0 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    input[type="date"] {
+      width: 100%;
+      max-width: 150px;
+      padding: 0.6em;
+      margin: 0.5em 0 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    textarea{
+      width: 100%;
+      max-width: 700px;
+      padding: 0.6em;
+      margin: 0.5em 0 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      max-width: 150px;
+      padding: 0.6em;
+      margin: 0.5em 0 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      padding: 0.6em 1.2em;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .table-container {
+      max-height: 300px; 
+      max-width: 700px;          
+      overflow-y: auto;           /* Enable vertical scrolling */
+      border: 1px solid #ccc;     /* Optional border for clarity */
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 700px;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background-color: #f8f8f8;  /* Background color for header */
+      z-index: 10;                /* Stay on top */
+      text-align: left;
+    }
+    details summary {
+      font-size: 1.2em;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0.5em 0;
+    }
+    .date-inputs {
+      display: flex;
+      gap: 1em;
+      align-items: center;
+      margin-bottom: 1em;
+      flex-wrap: wrap;
+    }
+
+    .date-inputs label {
+      min-width: 50px;
+    }
+
+    #load-reports-btn {
+      display: block;
+      margin-top: 0.5em;
+      padding: 0.5em 1.2em;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    #quarterly-chart {
+      width: 800px;
+      height: 600px;
+    }
+    .report-section {
+      display: flex;
+      gap: 2em;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .report-table th,
+    .report-table td {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .report-chart {
+      width: 800px;
+      height: 600px;
+    }
+    .table-scroll-container {
+        max-height: 600px;
+        overflow-y: auto;
+        width: 500px;
+      }
   </style>
 </head>
 <body>
-  <h1>Big Data Migration UI</h1>
+<div id="loading" style="display: none; font-weight: bold; margin: 1em 0;">Loading report...</div>
 
-  <br><br>
-  <h2>Upload CSV</h2>
-  <!-- Table selection -->
-  <label for="table_select">Select Table for CSV:</label>
-  <select id="table_select" onchange="updateCsvTableInput()">
-    <option value="jobs">Jobs</option>
-    <option value="departments">Departments</option>
-    <option value="hired_employees">Hired Employees</option>
-  </select>
+<header>
+  <h1>Globant Challenge</h1>
+</header>
 
-  <!-- Upload CSV -->  
-  <form action="/upload-csv/" method="post" enctype="multipart/form-data" onsubmit="updateCsvTableInput()">
-    <input type="hidden" name="table_name" id="csv_table_input", value="jobs">
-    <input type="file" name="file" accept=".csv" required><br><br>
-    <button type="submit">Upload CSV</button>
-  </form>
+<div style="margin-top: 1em;">
+  <h2>Challenge 1</h2>
+</div>
 
-  <script>
-  function updateCsvTableInput() {
-    const selectedTable = document.getElementById("table_select").value;
-    const input = document.getElementById("csv_table_input");
-    input.value = selectedTable;
-    console.log("Updated table_name:", selectedTable);  // <-- helpful log
-  }
-  window.onload = updateCsvTableInput; // set default on load
-  </script>
+<main>
+  <section class="section">
+    <details open>
+      <summary>Upload CSV</summary>
+      <label for="table_select">Select Table:</label>
+      <select id="table_select" onchange="updateCsvTableInput()">
+        <option value="jobs">Jobs</option>
+        <option value="departments">Departments</option>
+        <option value="hired_employees">Hired Employees</option>
+      </select>
+      <form action="/upload-csv/" method="post" enctype="multipart/form-data" onsubmit="return submitWithFeedback(this, 'CSV uploaded successfully')">
+        <input type="hidden" name="table_name" id="csv_table_input" value="jobs">
+        <input type="file" name="file" accept=".csv" required>
+        <button type="submit">Upload CSV</button>
+      </form>
+    </details>
+  </section>
 
-  <!-- Upload JSON -->
-  <h2>Upload JSON</h2>
-   <!-- Table selection -->
-   <label for="table_select_json">Select Table for JSON:</label>
-   <select name="table_name", id="table_select_json" onchange="updateCsvTableInput(); updatePlaceholder();">
-     <option value="jobs">Jobs</option>
-     <option value="departments">Departments</option>
-     <option value="hired_employees">Hired Employees</option>
-   </select>
+  <section class="section">
+    <details>
+      <summary>Upload JSON</summary>
+      <label for="table_select_json">Select Table:</label>
+      <select name="table_name" id="table_select_json" onchange="updateJsonTableInput(); updatePlaceholder();">
+        <option value="jobs">Jobs</option>
+        <option value="departments">Departments</option>
+        <option value="hired_employees">Hired Employees</option>
+      </select>
+      <form action="/upload-json/" method="post" onsubmit="return submitWithFeedback(this, 'JSON uploaded successfully')">
+        <input type="hidden" name="table_name" id="json_table_input">
+        <textarea id="json_input" name="data" rows="6" placeholder=""></textarea>
+        <div style="margin-top: 1em;">
+          <button type="submit">Upload JSON</button>
+        </div>
+      </form>
+    </details>
+  </section>
 
-  <form action="/upload-json/" method="post">
-    <input type="hidden" name="table_name" id="json_table_input">
-    <textarea id="json_input" name="data" rows="8" placeholder=""></textarea><br>
-    <button type="submit">Upload JSON</button>
-  </form>
+  <section class="section">
+    <details>
+      <summary>Backup</summary>
+      <form action="/backup/" method="post" onsubmit="return submitWithFeedback(this, 'Backup started successfully')">
+        <label for="backup_table">Select table to backup:</label>
+        <select name="table_name" id="backup_table">
+          <option value="">-- Full Database --</option>
+          <option value="jobs">Jobs</option>
+          <option value="departments">Departments</option>
+          <option value="hired_employees">Hired Employees</option>
+        </select>
+        <button type="submit">Start Backup</button>
+      </form>
+    </details>
+  </section>
 
-  <script>
-    function updateJsonTableInput() {
-      const selectedTable = document.getElementById("table_select_json").value;
-      document.getElementById("json_table_input").value = selectedTable;
-    }
-    window.onload = updateJsonTableInput; // set default on load
-  </script>
+  <section class="section">
+    <details>
+      <summary>Restore</summary>
+      <form action="/restore/" method="post" onsubmit="return submitWithFeedback(this, 'Restore started successfully')">
+        <label for="restore_table">Select table to restore:</label>
+        <select name="table_name" id="restore_table">
+          <option value="">-- Full Database --</option>
+          <option value="jobs">Jobs</option>
+          <option value="departments">Departments</option>
+          <option value="hired_employees">Hired Employees</option>
+        </select>
+        <button type="submit">Start Restore</button>
+      </form>
+    </details>
+  </section>
 
-  <!-- Backup -->
-  <h2>Backup</h2>
-  <form action="/backup/" method="post">
-    <label for="backup_table">Select table to backup:</label>
-    <select name="table_name" id="backup_table">
-      <option value="">-- Full Database --</option>
-      <option value="jobs">Jobs</option>
-      <option value="departments">Departments</option>
-      <option value="hired_employees">Hired Employees</option>
-    </select>
-    <button type="submit">Start Backup</button>
-  </form>
+  <div style="margin-top: 1em;">
+    <h2>Challenge 2</h2>
+  </div>
 
-  <!-- Restore -->
-  <h2>Restore</h2>
-<form action="/restore/" method="post">
-  <label for="restore_table">Select table to restore:</label>
-  <select name="table_name" id="restore_table">
-    <option value="">-- Full Database --</option>
-    <option value="jobs">Jobs</option>
-    <option value="departments">Departments</option>
-    <option value="hired_employees">Hired Employees</option>
-  </select>
-  <button type="submit">Start Restore</button>
-</form>
+  <section class="section">
+    <details open>
+      <summary>Report 1: Quarterly hiring by departments and jobs </summary>
+      <div class="date-inputs">
+        <label for="datefrom">From:</label>
+        <input type="date" id="datefrom_r1" value="2021-01-01">
+      
+        <label for="dateto">To:</label>
+        <input type="date" id="dateto_r1" value="2021-12-31">
+      </div>      
+      <button id="load-reports-btn" onclick="refreshReport1(); showLoading('Loading report...')">Load Report</button>
+      
+      <div class="report-section">
+        <div class="table-scroll-container">
+          <table id="quarterly-report" class="report-table"></table>
+        </div>
+        <div id="stacked-quarterly-chart" class="report-chart"></div>
+      </div> 
 
-  <script>
-    const placeholderMap = {
-      "jobs": `[{"id":1, "job": "Data Cloud Engineer"}]`,
-      "departments": `[{"id":1, "department": "TI"}]`,
-      "hired_employees": `[{"id":1, "name": "Sergio Gordon", "datetime": "2025-06-30T15:00:00Z", "department_id": 1, "job_id": 1}]`
-    };
+    </details>
+  </section>
 
-    function updatePlaceholder() {
-      const selected = document.getElementById("table_select_json").value;
-      document.getElementById("json_input").placeholder = placeholderMap[selected];
-      document.getElementById("json_table_input").value = selected;
-    }
+  <section class="section">
+    <details open>
+      <summary>Report 2: Number of hires in departments above the average hiring for a parametrized year</summary>
+      <h3>**Dates to set the average hiring years</h3>
+      <div class="date-inputs">
+        <label for="datefrom">From:</label>
+        <input type="date" id="datefrom_r2" value="2021-01-01">
+      
+        <label for="dateto">To:</label>
+        <input type="date" id="dateto_r2" value="2021-12-31">
+      </div>      
+      <button id="load-reports-btn" onclick="refreshReport2(); showLoading('Loading report...')">Load Report</button>
 
-    // Initialize on page load
-    window.onload = updatePlaceholder;
-  </script>
+      <div class="report-section">
+        <table id="above-avg-report" class="report-table"></table>
+        <div id="chart-above" class="report-chart"></div>
+      </div> 
 
-<h2>Reports</h2>
-<label for="datefrom">From:</label>
-<input type="date" id="datefrom" value="2021-01-01">
-<label for="dateto">To:</label>
-<input type="date" id="dateto" value="2021-12-31">
-<button onclick="refreshReports()">Load Reports</button>
+    </details>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+  <!-- Plotly JS -->
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <!-- Custom Chart JS -->
+  <script src="/static/stacked_quarterly_chart.js"></script>
+
+
+  <!-- Container for this chart -->
+  <div id="chart-above" style="width: 100%; max-width: 1000px; margin-top: 3em;"></div>
+
+  <!-- Link JS -->
+  <script src="/static/above_average_chart.js"></script>
 
 <script>
+  const placeholderMap = {
+    "jobs": `[{"id":1, "job": "Data Cloud Engineer"}]`,
+    "departments": `[{"id":1, "department": "TI"}]`,
+    "hired_employees": `[{"id":1, "name": "Sergio Gordon", "datetime": "2025-06-30T15:00:00Z", "department_id": 1, "job_id": 1}]`
+  };
+
+  function updateCsvTableInput() {
+    document.getElementById("csv_table_input").value = document.getElementById("table_select").value;
+  }
+
+  function updateJsonTableInput() {
+    document.getElementById("json_table_input").value = document.getElementById("table_select_json").value;
+  }
+
+  function updatePlaceholder() {
+    const selected = document.getElementById("table_select_json").value;
+    document.getElementById("json_input").placeholder = placeholderMap[selected];
+  }
+
   function loadReport(endpoint, tableId, datefrom, dateto) {
     const params = `?datefrom=${datefrom}&dateto=${dateto}`;
-  
+
     fetch(endpoint + params)
       .then(res => res.json())
       .then(data => {
         const table = document.getElementById(tableId);
         table.innerHTML = "";
-  
+
         if (data.length === 0) {
           table.innerHTML = "<tr><td>No data</td></tr>";
           return;
         }
-  
+
         const headers = Object.keys(data[0]);
         table.innerHTML += "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
-  
+
         data.forEach(row => {
           table.innerHTML += "<tr>" + headers.map(h => `<td>${row[h]}</td>`).join('') + "</tr>";
         });
+        Swal.close();
       });
   }
-  
-  function refreshReports() {
-    const datefrom = document.getElementById("datefrom").value;
-    const dateto = document.getElementById("dateto").value;
-  
+
+  function refreshReport1() {
+    const datefrom = document.getElementById("datefrom_r1").value;
+    const dateto = document.getElementById("dateto_r1").value;
     loadReport("/report/quarterly-hiring", "quarterly-report", datefrom, dateto);
+    loadQuarterlyChart(datefrom, dateto);
+  }
+
+  function refreshReport2() {
+    const datefrom = document.getElementById("datefrom_r2").value;
+    const dateto = document.getElementById("dateto_r2").value;
     loadReport("/report/above-average-hiring", "above-avg-report", datefrom, dateto);
   }
-  
-  // Load reports on page load with defaults
-  window.onload = refreshReports;
-  </script>
-  
-  <h3>Quarterly Hiring Report</h3>
-  <table border="1" id="quarterly-report"></table>
-  
-  <h3>Departments Hiring Above Average</h3>
-  <table border="1" id="above-avg-report"></table>
-  
 
-</body>
+  function showLoading(message = 'Loading...') {
+    const loader = document.getElementById('loading');
+    if (loader) {
+      loader.textContent = message;
+      loader.style.display = 'block';
+    }
+  }
+
+  function hideLoading() {
+    const loader = document.getElementById('loading');
+    if (loader) {
+      loader.style.display = 'none';
+    }
+  }
+
+
+  function submitWithFeedback(form, successMessage) {
+    toastr.success(successMessage);
+    return true;
+  }
+
+  window.onload = function () {
+    updateCsvTableInput();
+    updateJsonTableInput();
+    updatePlaceholder();
+    refreshReport1();
+    refreshReport2();
+  };
+</script>
+  </body>
 </html>

@@ -11,8 +11,11 @@ from scripts.load_csv import load_data_to_db, TB_SCHEMAS
 from scripts.backup import backup_table, backup_all_tables
 from scripts.restore import restore_table, restore_all_tables
 from app.api import insertFromBatch
+from app import api
 
 app = FastAPI()
+
+app.include_router(api.router)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
@@ -96,4 +99,5 @@ async def restore(table_name: str = Form("")):
             return {"message": "Restore completed", "details": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Restore failed: {str(e)}")
+        
     

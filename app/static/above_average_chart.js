@@ -59,11 +59,11 @@ document.addEventListener("DOMContentLoaded", function () {
         height: Math.max(400, departments.length * 30)
         };
   
-        Plotly.newPlot("chart-above", [trace], layout);
+        Plotly.newPlot("above-avg-chart", [trace], layout);
         })
         .catch(error => {
             console.error("Error loading chart:", error);
-            document.getElementById("chart-above").innerHTML = "Error loading chart.";
+            document.getElementById("above-avg-chart").innerHTML = "Error loading chart.";
         });
   });
   

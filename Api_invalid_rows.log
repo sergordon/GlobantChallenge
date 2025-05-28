@@ -1,5 +1,0 @@
-INFO:root:Invalid row in table 'jobs': {'id': 9999, 'job': ''}
-WARNING:root:[jobs] Null value in column {'id': 2000, 'department': 'TI'} | Error: 1 validation error for JobSchema
-job
-  Field required [type=missing, input_value={'id': 2000, 'department': 'TI'}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.11/v/missing

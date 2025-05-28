@@ -1,6 +1,7 @@
 import fastavro
 import os
 from sqlalchemy import text, inspect
+from datetime import datetime
 from db.database import engine
 
 # Map SQLAlchemy types to AVRO types
@@ -25,7 +26,7 @@ def backup_table(table_name):
     records = [dict(row) for row in result.mappings()]
 
     if not records:
-        return {"results_msg": f"There is no data to backup in table {table_name}"}
+        return {"result_msg": f"[WARN]: There is no data to backup in table {table_name}"}
     
     inspector = inspect(engine)
     columns = inspector.get_columns(table_name)
@@ -43,11 +44,16 @@ def backup_table(table_name):
     return {"result_msg": f"Backup completed for table: {table_name}"}
 
 def backup_all_tables():
-    result = []
+    msg = ""
     inspector = inspect(engine)
     tables = inspector.get_table_names()
     for table in tables:
-        msg = backup_table(table)
-        result.append(msg)
-    result.append("Full database backup completed")
-    return {"results_msg": result}
+        result = backup_table(table)
+        msg += "<br>" + result["result_msg"]
+
+    if "ERROR" in msg.upper():
+        return {"result_msg": msg}
+    else:
+        msg += "<br>Full database backup completed"
+        return {"result_msg": msg}
+    

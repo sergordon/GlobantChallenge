@@ -1,18 +1,19 @@
 import os
 import pandas as pd
-from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from db.database import engine
 from db.models import Base
 from datetime import datetime
+from app.utils.logger_manager import LoggerManager
 
+#Initializing loggers
+logger_erros = LoggerManager("logs", "load_csv_errors.log")
+logger_invalid_rows = LoggerManager()
 
 # Execute models and create tables
 Base.metadata.create_all(bind=engine)
 
 DATA_DIR = "data"
-LOG_DIR = "logs"
-os.makedirs(LOG_DIR, exist_ok=True)
 
 TB_SCHEMAS = {
     "jobs": ['id', 'job'],
@@ -40,9 +41,10 @@ def load_data_to_db(path, tablename, columns):
         if is_valid_row:
             valid_rows.append(row_dic)
         else:
+            row_dic["error_datetime"] = {datetime.now().isoformat()}
+            row_dic["tablename"] = tablename
             row_dic["error"] = error_message
             invalid_rows.append(row_dic)
-            results_msg.append(error_message)
     
     if valid_rows:
         try:
@@ -50,18 +52,24 @@ def load_data_to_db(path, tablename, columns):
             result_msg = f"[Success]: {len(valid_rows)} records loaded from {path} into table {tablename}"
             print(result_msg)
         except SQLAlchemyError as e_sql:
-            result_msg = f"[Error]: Failed to load {path}: {e_sql}"            
+            result_msg = f"[Error]: Failed to load {path}. See details in load_csv_errors.log"
             print(result_msg)
+            logger_erros.log_error(f"{datetime.now().isoformat()} [SQL ERROR]: {result_msg} - {e_sql}\n")
+            return {"result_msg": result_msg}
+
         except Exception as e:
             result_msg = f"[Error]: General error {e}"
             print(result_msg)
+            logger_erros.log_error(f"{datetime.now().isoformat()} [GENERAL ERROR]: {result_msg}\n")
+            return {"result_msg": result_msg}
+
         results_msg.append(result_msg)
 
     if invalid_rows:
-        log_file = os.path.join(LOG_DIR, f"Errors_historic_load_of_{tablename}.log")
-        pd.DataFrame(invalid_rows).to_csv(log_file, index=False)
+        log_file = "invalid_rows.log"
         result_msg = f"[WARN]: {len(invalid_rows)} invalid records logged to {log_file}"
         print(result_msg)
+        logger_invalid_rows.log_dataframe(pd.DataFrame(invalid_rows), filename=log_file)
         results_msg.append(result_msg)
 
     return {"result_msg": results_msg}

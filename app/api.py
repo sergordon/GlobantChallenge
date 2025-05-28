@@ -1,50 +1,29 @@
-# import sys
-# import os
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, model_validator, ValidationError
+from pydantic import BaseModel, ValidationError
 from typing import List
 from app import db_dml
 from db.models import Jobs, Departments, Hired_Employees
 from db.database import engine
-import os
-import logging
+from datetime import datetime
 from typing import Any
 from sqlalchemy import text
-
+from app.utils.logger_manager import LoggerManager
 
 #Config logger
-LOG_DIR = os.path.join(os.path.dirname(__file__), "..", "logs")
-os.makedirs(LOG_DIR, exist_ok=True)
-
-logging.basicConfig(level=logging.INFO, 
-                    filename="Api_invalid_rows.log",
-                    filemode="a")
+logger = LoggerManager("logs", "json_columns_type_error.log")
 
 router = APIRouter()
 
-# Global validator
-class ModelValidator(BaseModel):
-    @model_validator(mode='after')
-    def no_null_or_empty_fields(model):
-        for field, value in model.__dict__.items():
-            if value is None or (isinstance(value, str) and value.strip() == ""):
-                raise ValueError(f"Field '{field}' must not be null or empty")
-        return model
-
-
 #Models/Tables
-class JobSchema(ModelValidator):
+class JobSchema(BaseModel):
     id: int
     job: str
 
-class DepartmentSchema(ModelValidator):
+class DepartmentSchema(BaseModel):
     id: int
     department: str
 
-class HiredEmployeeSchema(ModelValidator):
+class HiredEmployeeSchema(BaseModel):
     id: int
     name: str
     datetime:str
@@ -76,7 +55,8 @@ def insertFromBatch(table: str, data: list[dict[str, Any]]):
             model_instance = model_class(**validated.model_dump())
             valid_items.append(model_instance)
         except ValidationError as e:
-            logging.warning(f"[{table}] Null value in column {item} | Error: {e}")
+            logger.log_error(f"{datetime.now().isoformat()} {e} -  Column {item}")
+            return {"result_msg": f"{e} -  Column {item}"}
 
     if not valid_items:
         raise HTTPException(status_code=400, detail="There is no valid rows to insert")
@@ -125,11 +105,3 @@ def above_average_hiring(datefrom: str = Query(...), dateto: str = Query(...)):
     with engine.connect() as conn:
         result = conn.execute(query, {"datefrom": datefrom, "dateto": dateto})
         return [dict(row._mapping) for row in result]
-
-# def main():
-#     results = above_average_hiring("2021-01-01", "2021-12-31")
-    
-#     return print(results)
-
-# if __name__ == "__main__":
-#     main()

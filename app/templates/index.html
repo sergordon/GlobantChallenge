@@ -2,9 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Big Data Migration UI</title>
+  <title>Challenge UI</title>
+  <!-- jQuery (required for Toastr) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    toastr.options = {
+      "closeButton": true,
+      "progressBar": true,
+      "positionClass": "toast-top-right",
+      "timeOut": "4000"
+    };
+    </script>
+
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -95,8 +108,8 @@
     .table-container {
       max-height: 300px; 
       max-width: 700px;          
-      overflow-y: auto;           /* Enable vertical scrolling */
-      border: 1px solid #ccc;     /* Optional border for clarity */
+      overflow-y: auto;           
+      border: 1px solid #ccc;    
     }
 
     table {
@@ -143,37 +156,54 @@
       font-size: 1em;
       cursor: pointer;
     }
-    #quarterly-chart {
+    #stacked-quarterly-chart {
       width: 800px;
       height: 600px;
     }
-    .report-section {
-      display: flex;
-      gap: 2em;
-      flex-wrap: wrap;
-      align-items: flex-start;
+    #above-avg-chart {
+      width: 800px;
+      height: 600px;
     }
-
     .report-table {
       width: 100%;
       border-collapse: collapse;
     }
-
     .report-table th,
     .report-table td {
       padding: 8px;
       border: 1px solid #ccc;
     }
+    .report-section {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 10px;
+      overflow-x: auto;
+    }
+
+    .table-scroll-container {
+      max-height: 600px;
+      overflow-y: auto;
+      width: 500px;
+      flex-shrink: 0;
+      background: #fff;
+    }
+
+    .chart-container {
+      flex: 1;
+      min-width: 600px;
+      flex-shrink: 0;
+      background: #f8f8f8;
+      padding: 10px;
+    }
 
     .report-chart {
-      width: 800px;
       height: 600px;
+      width: 100%;
     }
-    .table-scroll-container {
-        max-height: 600px;
-        overflow-y: auto;
-        width: 500px;
-      }
+
+   
   </style>
 </head>
 <body>
@@ -197,7 +227,7 @@
         <option value="departments">Departments</option>
         <option value="hired_employees">Hired Employees</option>
       </select>
-      <form action="/upload-csv/" method="post" enctype="multipart/form-data" onsubmit="return submitWithFeedback(this, 'CSV uploaded successfully')">
+      <form action="/upload-csv/" method="post" enctype="multipart/form-data" class="form-action-handler">
         <input type="hidden" name="table_name" id="csv_table_input" value="jobs">
         <input type="file" name="file" accept=".csv" required>
         <button type="submit">Upload CSV</button>
@@ -214,7 +244,7 @@
         <option value="departments">Departments</option>
         <option value="hired_employees">Hired Employees</option>
       </select>
-      <form action="/upload-json/" method="post" onsubmit="return submitWithFeedback(this, 'JSON uploaded successfully')">
+      <form action="/upload-json/" method="post" class="form-action-handler">
         <input type="hidden" name="table_name" id="json_table_input">
         <textarea id="json_input" name="data" rows="6" placeholder=""></textarea>
         <div style="margin-top: 1em;">
@@ -227,7 +257,7 @@
   <section class="section">
     <details>
       <summary>Backup</summary>
-      <form action="/backup/" method="post" onsubmit="return submitWithFeedback(this, 'Backup started successfully')">
+      <form action="/backup/" method="post" class="form-action-handler">
         <label for="backup_table">Select table to backup:</label>
         <select name="table_name" id="backup_table">
           <option value="">-- Full Database --</option>
@@ -243,7 +273,7 @@
   <section class="section">
     <details>
       <summary>Restore</summary>
-      <form action="/restore/" method="post" onsubmit="return submitWithFeedback(this, 'Restore started successfully')">
+      <form action="/restore/" method="post" class="form-action-handler">
         <label for="restore_table">Select table to restore:</label>
         <select name="table_name" id="restore_table">
           <option value="">-- Full Database --</option>
@@ -277,7 +307,7 @@
           <table id="quarterly-report" class="report-table"></table>
         </div>
         <div id="stacked-quarterly-chart" class="report-chart"></div>
-      </div> 
+      </div>
 
     </details>
   </section>
@@ -285,38 +315,34 @@
   <section class="section">
     <details open>
       <summary>Report 2: Number of hires in departments above the average hiring for a parametrized year</summary>
-      <h3>**Dates to set the average hiring years</h3>
+      <h3>Dates to set the average hiring years</h3>
+  
       <div class="date-inputs">
-        <label for="datefrom">From:</label>
+        <label for="datefrom_r2">From:</label>
         <input type="date" id="datefrom_r2" value="2021-01-01">
-      
-        <label for="dateto">To:</label>
+        <label for="dateto_r2">To:</label>
         <input type="date" id="dateto_r2" value="2021-12-31">
-      </div>      
+      </div>
+  
       <button id="load-reports-btn" onclick="refreshReport2(); showLoading('Loading report...')">Load Report</button>
-
+  
       <div class="report-section">
-        <table id="above-avg-report" class="report-table"></table>
-        <div id="chart-above" class="report-chart"></div>
-      </div> 
-
+        <div class="table-scroll-container">
+          <table id="above-avg-report" class="report-table"></table>
+        </div>
+        <div class="chart-container">
+          <div id="above-avg-chart" class="report-chart"></div>
+        </div>
+      </div>
     </details>
   </section>
+  
 </main>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
   <!-- Plotly JS -->
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
   <!-- Custom Chart JS -->
   <script src="/static/stacked_quarterly_chart.js"></script>
-
-
-  <!-- Container for this chart -->
-  <div id="chart-above" style="width: 100%; max-width: 1000px; margin-top: 3em;"></div>
-
-  <!-- Link JS -->
   <script src="/static/above_average_chart.js"></script>
 
 <script>
@@ -336,9 +362,16 @@
 
   function updatePlaceholder() {
     const selected = document.getElementById("table_select_json").value;
-    document.getElementById("json_input").placeholder = placeholderMap[selected];
-  }
+    const textarea = document.getElementById("json_input");
 
+    // Update placeholder
+    textarea.placeholder = placeholderMap[selected];
+
+    // Clean text area
+    if (textarea.value.trim() !== "") {
+      textarea.value = "";
+    }
+  }
   function loadReport(endpoint, tableId, datefrom, dateto) {
     const params = `?datefrom=${datefrom}&dateto=${dateto}`;
 
@@ -367,7 +400,6 @@
     const datefrom = document.getElementById("datefrom_r1").value;
     const dateto = document.getElementById("dateto_r1").value;
     loadReport("/report/quarterly-hiring", "quarterly-report", datefrom, dateto);
-    loadQuarterlyChart(datefrom, dateto);
   }
 
   function refreshReport2() {
@@ -405,5 +437,72 @@
     refreshReport2();
   };
 </script>
+ 
+<script>
+  document.querySelectorAll(".form-action-handler").forEach(form => {
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const formData = new FormData(form);
+      const actionUrl = form.getAttribute("action");
+  
+      try {
+        const response = await fetch(actionUrl, {
+          method: "POST",
+          body: formData
+        });
+        const result = await response.json();
+        showUnifiedDialog(result);
+      } catch (error) {
+        showUnifiedDialog(null, error);
+      }
+    });
+  });
+  
+  function showUnifiedDialog(result, error = null) {
+    if (error) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Something went wrong: ' + error.message,
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    let allMessages = [];
+
+    if (typeof result === "object") {
+      Object.values(result).forEach(section => {
+        if (Array.isArray(section?.result_msg)) {
+          allMessages.push(...section.result_msg);
+        } else if (typeof section?.result_msg === "string") {
+          allMessages.push(section.result_msg);
+        } else if (typeof section === "string") {
+          allMessages.push(section);
+        }
+      });
+    } else {
+      allMessages.push(JSON.stringify(result));
+    }
+
+    if (allMessages.length === 0) {
+      allMessages.push("No response message received.");
+    }
+
+    const icon = allMessages.some(m => m.toLowerCase().includes('error')) ? 'error'
+                : allMessages.some(m => m.toLowerCase().includes('warn')) ? 'warning'
+                : 'success';
+
+    Swal.fire({
+      title: 'Result',
+      html: allMessages.map(m => `<p>${m}</p>`).join(''),
+      icon: icon,
+      confirmButtonText: 'OK'
+    });
+  }
+
+  </script>
+  
+      
   </body>
 </html>

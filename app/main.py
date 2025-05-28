@@ -6,15 +6,18 @@ from typing import Any
 import shutil
 import os
 import json
-import logging
+from datetime import datetime
 from scripts.load_csv import load_data_to_db, TB_SCHEMAS
 from scripts.backup import backup_table, backup_all_tables
 from scripts.restore import restore_table, restore_all_tables
 from app.api import insertFromBatch
 from app import api
+from app.utils.logger_manager import LoggerManager
+
+#Config logger
+logger_api = LoggerManager("logs", "api_invalid_rows.log")
 
 app = FastAPI()
-
 app.include_router(api.router)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -48,33 +51,30 @@ async def upload_json(table_name: str = Form(...), data: str = Form(...)):
     try:
         # Parse stringified JSON list
         items: list[dict[str, Any]] = json.loads(data)
-
         valid_items = []
-        results = []
-        results_insert = []
+        results_insert = {}
         for item in items:
             if any(v in (None, "", []) for v in item.values()):
-                logging.info(f"Invalid row in table '{table_name}': {item}")
+                logger_api.log_error(f"{datetime.now().isoformat()} - Null or empty value in table {table_name} -  row {item}")
             else:
                 valid_items.append(item)
 
         if valid_items:
-            results_insert = insertFromBatch(table_name, valid_items)
+            insert_result = insertFromBatch(table_name, valid_items)
+            msg = insert_result["result_msg"]
+            results_insert["result_msg"] = msg
+            if "ERROR" in msg.upper():
+                return insert_result
+             
         if (len(items) - len(valid_items)) > 0:
-            return {
-            "message": "JSON processed",            
-            "result_mesage": results_insert,
-            "invalid_rows": f"{len(items) - len(valid_items)} invalid rows were logged in logs folder"
-            }
-        else:
-            return {
-                "message": "JSON processed",
-                "result_mesage": results_insert
-            }
+            warn_msg = f"[WARN]: {len(items) - len(valid_items)} invalid rows were logged in api_invalid_rows.log"
+            results_insert["result_msg"] += f"<br>{warn_msg}"
+        return results_insert
+
     except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format")
+        raise HTTPException(status_code=400, detail="[Error]: Invalid JSON format")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process JSON: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"[Error]: Failed to process JSON: {str(e)}")
 
 @app.post("/backup/")
 async def backup(table_name: str = Form("")):

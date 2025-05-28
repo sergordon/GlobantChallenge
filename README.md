@@ -1,6 +1,6 @@
 # Globant Challenge
 
-This project is a Proof of Concept (PoC) for a migration solution. It allows ingestion of historical data from CSV files, reception of new data via REST API, and backup/restore of database content using AVRO format. Additionally, it includes a modern web-based UI for interaction and reporting.
+This project is a Proof of Concept (PoC) for a data migration solution. It allows ingestion of historical data from CSV files, reception of new data via REST API, and backup/restore of database content using AVRO format. Additionally, it includes a modern web-based UI for interaction and reporting.
 > **Note:** The database starts empty. You must populate the tables using the web UI, CSV uploads for historical data an JSON upload for new data.
 
 ## 📁 Project Structure
@@ -151,6 +151,7 @@ Logs are saved in the `logs/` folder:
 ## 🧪 Example Data
 
 Sample payloads for testing:
+For `jobs`:
 
 ```json
 [
@@ -172,6 +173,10 @@ For `hired_employees`:
   }
 ]
 ```
+## Access Online
+
+🔗 [Open Render Deployment](https://globantchallenge.onrender.com/)
+
 
 ---
 ## 👤 Author

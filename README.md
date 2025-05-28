@@ -1,38 +1,39 @@
 # Globant Challenge
 
 This project is a Proof of Concept (PoC) for a migration solution. It allows ingestion of historical data from CSV files, reception of new data via REST API, and backup/restore of database content using AVRO format. Additionally, it includes a modern web-based UI for interaction and reporting.
+> **Note:** The database starts empty. You must populate the tables using the web UI, CSV uploads for historical data an JSON upload for new data.
 
 ## 📁 Project Structure
 
 ```
 globantchallenge/
 ├── app
-│   ├── api.py 							        # API endpoints for data ingestion
-│   ├── db_dml.py 						      #DB DML operations
-│   ├── main.py 						        # FastAPI app
-│   ├── static 							        # JS files (charts)
+│   ├── api.py 							# API endpoints for data ingestion
+│   ├── db_dml.py 						#DB DML operations
+│   ├── main.py 						# FastAPI app
+│   ├── static 							# JS files (charts)
 │   │   ├── above_average_chart.js
 │   │   └── stacked_quarterly_chart.js
-│   ├── templates 						      # HTML templates (Jinja2)
+│   ├── templates 						# HTML templates (Jinja2)
 │   │   └── index.html
-│   └── utils 							        # Python utilities
+│   └── utils 							# Python utilities
 │       └── logger_manager.py 
-├── backup 								          # Avro backup files
-├── data 								            # CSV data
+├── backup 								# Avro backup files
+├── data 								# CSV data
 │   ├── departments.csv
 │   ├── hired_employees.csv
 │   └── jobs.csv
 ├── db
-│   ├── database.py 					      # DB engine and session management
-│   └── models.py 						      # SQLAlchemy models
-├── logs 								            # Logs of invalid data or errors
-├── poc.db 								          # SQLite Database
-├── requirements.txt 					      # Python dependencies
+│   ├── database.py 					# DB engine and session management
+│   └── models.py 						# SQLAlchemy models
+├── logs 								# Logs of invalid data or errors
+├── poc.db 								# SQLite Database
+├── requirements.txt 					# Python dependencies
 ├── scripts								
-│	├── backup.py						          # Script to bulk load historical CSV data
-│	├── load_csv.py						        # Script to generate AVRO backups
-│	└── restore.py						        # Script to restore data from AVRO files
-├── Dockerfile 							        # Deployment config
+│	├── backup.py						# Script to bulk load historical CSV data
+│	├── load_csv.py						# Script to generate AVRO backups
+│	└── restore.py						# Script to restore data from AVRO files
+├── Dockerfile 							# Deployment config
 └── README.md                  			# Project documentation
 ```
 
@@ -43,7 +44,7 @@ globantchallenge/
 - Insert clean data into a relational database.
 - REST API endpoint for ingesting JSON-formatted transactions.
 - AVRO-based backup and restore for the full database or specific tables.
-- Interactive reports (Plotly charts) to visualize:
+- Interactive reports (Plotly charts) with date filtering to visualize:
   - Quarterly hires by department and job (default selected quarters 2021).
   - Departments hiring above average for a given year range (default select 2021).
 - UI built with HTML + JavaScript + Plotly, powered by FastAPI backend.
@@ -102,6 +103,7 @@ The app provides an intuitive UI:
 - **Upload CSV/JSON**: Supports all three tables (jobs, departments, hired_employees).
 - **Backup & Restore**: Easily backup or restore full DB or specific tables.
 - **Reports**: Explore two reports with date filters and interactive charts.
+> **Note:** The database starts empty. You must upload your own data using the UI.
 
 ## 🧪 API Endpoints
 
@@ -113,18 +115,65 @@ The app provides an intuitive UI:
 
 ## 📊 Reports
 
-- **Report 1**: Quarterly hiring visualized per department and job (stacked bar).
-- **Report 2**: Horizontal bar chart of departments hiring above average.
+### Report 1: Quarterly Hiring by Department and Job
+- Stacked bar chart
+- Filter by date range
+- Dropdown to filter by department
 
-## 📦 Backup Format
+### Report 2: Above-Average Hiring Departments
+- Shows the number of hires in departments above the average hiring rate for a parametrized year
+- Displayed as horizontal bar chart
 
-AVRO files are generated per table or for the full DB. These can be restored later, preserving schema compatibility.
+## 🔄 Backup and Restore
 
-## 📝 Logging
+Backups are saved in `.avro` format and placed in the `backup/` folder.
 
-- Logs for invalid rows during CSV/JSON upload are saved in `logs/`.
-- SQL errors and operational issues are also persisted with timestamps.
+- **Backup entire DB or individual tables**
+- **Restore from `.avro` files easily**
 
+## 📝 Logs
+
+Logs are saved in the `logs/` folder:
+
+- `sql_errors.log` — DB-related issues
+- `api_invalid_rows.log` — invalid JSON rows from the API
+- `historic_load_errors_table_*.log` — invalid CSV rows per table
+
+---
+
+## 📌 Notes
+
+- **Empty DB**: In order to see logs for invalid rows and load data feature, **you must populate the database via the UI**.
+- Invalid rows are logged; valid rows are inserted.
+- Error and success messages are shown in the browser via dialogs.
+---
+
+## 🧪 Example Data
+
+Sample payloads for testing:
+
+```json
+[
+  {"id": 1, "job": "Data Engineer"},
+  {"id": 2, "job": "ML Engineer"}
+]
+```
+
+For `hired_employees`:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "datetime": "2021-01-10T10:00:00Z",
+    "department_id": 1,
+    "job_id": 1
+  }
+]
+```
+
+---
 ## 👤 Author
 
 **Sergio Gordon**  

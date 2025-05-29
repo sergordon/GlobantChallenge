@@ -4,10 +4,6 @@ This project is a Proof of Concept (PoC) for a data migration solution. It allow
   - Transactions that don't accomplish the rules must not be inserted but they must be logged.
   - All the fields are required.
 
-## 🌐 Live Demo
-
-👉 [Access the UI on Render](https://globantchallenge.onrender.com/)
-
 > **Note:** The database starts empty. You must populate the tables using the web UI, CSV uploads for historical data an JSON upload for new data.
 
 ## 📁 Project Structure
@@ -68,6 +64,7 @@ globantchallenge/
 - Automatic refresh on load and report button.
 
 ### ✅ Log Viewer
+- Logs are saved in the `logs/` folder:
 - View backend logs directly from the web UI.
 ---
 ## 📊 Technologies Used
@@ -127,53 +124,9 @@ docker build -t globant-challenge .
 docker run -d -p 8000:8000 globant-challenge
 ```
 
-## 🌐 Web Interface 👉 [Access the UI on Render](https://globantchallenge.onrender.com/)
+## 🌐 Access online
+👉 [Access the UI on Render](https://globantchallenge.onrender.com/)
 
-The app provides an intuitive UI:
-
-## Access Online
-
-🔗 [Open Render Deployment](https://globantchallenge.onrender.com/)
-
-- **Upload CSV/JSON**: Supports all three tables (jobs, departments, hired_employees).
-- **Backup & Restore**: Easily backup or restore full DB or specific tables.
-- **Reports**: Explore two reports with date filters and interactive charts.
-- **Logs**: View log files from UI.
-> **Note:** The database starts empty. You must upload your own data using the UI.
-
-## 📊 Reports
-
-### Report 1: Quarterly Hiring by Department and Job
-- Stacked bar chart
-- Filter by date range
-- Dropdown to filter by department
-
-### Report 2: Above-Average Hiring Departments
-- Shows the number of hires in departments above the average hiring rate for a parametrized year
-- Displayed as horizontal bar chart
-
-## 🔄 Backup and Restore
-
-Backups are saved in `.avro` format and placed in the `backup/` folder.
-
-- **Backup entire DB or individual tables**
-- **Restore from `.avro` files easily**
-
-## 📝 Logs
-
-Logs are saved in the `logs/` folder:
-
-- `sql_errors.log` — DB-related issues
-- `api_invalid_rows.log` — invalid JSON rows from the API
-- `historic_load_errors_table_*.log` — invalid CSV rows per table
-
----
-
-## 📌 Notes
-
-- **Empty DB**: In order to see logs for invalid rows and load data feature, **you must populate the database via the UI**.
-- Invalid rows are logged; valid rows are inserted.
-- Error and success messages are shown in the browser via dialogs.
 ---
 
 ## 🧪 Example Data
@@ -209,6 +162,7 @@ For `hired_employees`:
     "job_id": 501
   }
 ]
+```
 
 ---
 ## 👤 Author

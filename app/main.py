@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse,PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import Any
@@ -99,5 +99,16 @@ async def restore(table_name: str = Form("")):
             return {"message": "Restore completed", "details": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Restore failed: {str(e)}")
-        
-    
+
+@app.get("/logs/{log_filename}", response_class=PlainTextResponse)
+async def get_log_file(log_filename: str):
+    safe_files = ["api_invalid_rows.log", "invalid_rows.log", "json_columns_type_error.log", "load_csv_errors.log"] 
+    if log_filename not in safe_files:
+        raise HTTPException(status_code=403, detail="Access to this log file is not allowed.")
+
+    log_path = os.path.join("logs", log_filename)
+    if not os.path.exists(log_path):
+        raise HTTPException(status_code=404, detail="Log file not found.")
+
+    with open(log_path, "r") as file:
+        return file.read()

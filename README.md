@@ -1,6 +1,13 @@
 # Globant Challenge
 
-This project is a Proof of Concept (PoC) for a data migration solution. It allows ingestion of historical data from CSV files, reception of new data via REST API, and backup/restore of database content using AVRO format. Additionally, it includes a modern web-based UI for interaction and reporting.
+This project is a Proof of Concept (PoC) for a data migration solution. It allows ingestion of historical data from CSV files, reception of new data via REST API, and backup/restore of database content using AVRO format. Additionally, it includes a modern web-based UI for interaction and reporting. The design follows next the data rules:
+  - Transactions that don't accomplish the rules must not be inserted but they must be logged.
+  - All the fields are required.
+
+## 🌐 Live Demo
+
+👉 [Access the UI on Render](https://globantchallenge.onrender.com/)
+
 > **Note:** The database starts empty. You must populate the tables using the web UI, CSV uploads for historical data an JSON upload for new data.
 
 ## 📁 Project Structure
@@ -8,48 +15,72 @@ This project is a Proof of Concept (PoC) for a data migration solution. It allow
 ```
 globantchallenge/
 ├── app
-│   ├── api.py 							# API endpoints for data ingestion
-│   ├── db_dml.py 						#DB DML operations
-│   ├── main.py 						# FastAPI app
-│   ├── static 							# JS files (charts)
+│   ├── api.py            # API endpoints for data ingestion
+│   ├── db_dml.py 				#DB DML operations
+│   ├── main.py 					# FastAPI app
+│   ├── static            # JS files (charts)
 │   │   ├── above_average_chart.js
 │   │   └── stacked_quarterly_chart.js
-│   ├── templates 						# HTML templates (Jinja2)
+│   ├── templates         # HTML templates (Jinja2)
 │   │   └── index.html
-│   └── utils 							# Python utilities
+│   └── utils             # Python utilities
 │       └── logger_manager.py 
-├── backup 								# Avro backup files
-├── data 								# CSV data
+├── backup                # Avro backup files
+├── data                  # CSV data
 │   ├── departments.csv
 │   ├── hired_employees.csv
 │   └── jobs.csv
 ├── db
-│   ├── database.py 					# DB engine and session management
-│   └── models.py 						# SQLAlchemy models
-├── logs 								# Logs of invalid data or errors
+│   ├── database.py       # DB engine and session management
+│   └── models.py         # SQLAlchemy models
+├── logs                  # Logs of invalid data or errors
 ├── poc.db 								# SQLite Database
-├── requirements.txt 					# Python dependencies
+├── requirements.txt 			# Python dependencies
 ├── scripts								
 │	├── backup.py						# Script to bulk load historical CSV data
-│	├── load_csv.py						# Script to generate AVRO backups
-│	└── restore.py						# Script to restore data from AVRO files
-├── Dockerfile 							# Deployment config
-└── README.md                  			# Project documentation
+│	├── load_csv.py					# Script to generate AVRO backups
+│	└── restore.py					# Script to restore data from AVRO files
+├── Dockerfile 						# Deployment config
+└── README.md             # Project documentation
 ```
 
-## 🚀 Features
+## ⚙️ Features
 
-- Upload CSV (historical data) and JSON (new data) data using a web interface.
-- Validate and log invalid rows to persistent files.
-- Insert clean data into a relational database.
-- REST API endpoint for ingesting JSON-formatted transactions.
-- AVRO-based backup and restore for the full database or specific tables.
-- Interactive reports (Plotly charts) with date filtering to visualize:
-  - Quarterly hires by department and job (default selected quarters 2021).
-  - Departments hiring above average for a given year range (default select 2021).
-- UI built with HTML + JavaScript + Plotly, powered by FastAPI backend.
-- Deployable to Render using Docker.
+### ✅ CSV Upload
+- Upload files for `jobs`, `departments`, and `hired_employees`.
+- Validates data before inserting into DB.
+- Invalid rows are logged in `logs/`.
 
+### ✅ JSON Upload
+- REST API endpoint for ingesting.
+- Accepts JSON payload for insertion.
+- Invalid entries are logged and do not break insertion of valid records.
+
+### ✅ Backup & Restore
+- Full or table-specific backup in AVRO format.
+- Restore functionality from AVRO files.
+
+### ✅ Charts and Reports
+- Quarterly hires by department and job (default selected quarters 2021).
+- Departments hiring above average for a given year range (default select 2021).
+- Filters by date range.
+- Data table + visual chart side by side.
+- Automatic refresh on load and report button.
+
+### ✅ Log Viewer
+- View backend logs directly from the web UI.
+---
+## 📊 Technologies Used
+
+- **Python 3.11+**
+- **FastAPI**
+- **SQLAlchemy**
+- **SQLite (local DB)**
+- **Pandas**
+- **Plotly.js**
+- **HTML/CSS + JS**
+- **SweetAlert2 + Toastr for feedback**
+---
 ## ⚙️ Setup Instructions
 
 ### 1. Prerequisites
@@ -96,22 +127,19 @@ docker build -t globant-challenge .
 docker run -d -p 8000:8000 globant-challenge
 ```
 
-## 🌐 Web Interface
+## 🌐 Web Interface 👉 [Access the UI on Render](https://globantchallenge.onrender.com/)
 
 The app provides an intuitive UI:
+
+## Access Online
+
+🔗 [Open Render Deployment](https://globantchallenge.onrender.com/)
 
 - **Upload CSV/JSON**: Supports all three tables (jobs, departments, hired_employees).
 - **Backup & Restore**: Easily backup or restore full DB or specific tables.
 - **Reports**: Explore two reports with date filters and interactive charts.
+- **Logs**: View log files from UI.
 > **Note:** The database starts empty. You must upload your own data using the UI.
-
-## 🧪 API Endpoints
-
-- `POST /upload-csv/`
-- `POST /upload-json/`
-- `POST /backup/`
-- `POST /restore/`
-- `POST /api/{table_name}` (API ingestion)
 
 ## 📊 Reports
 
@@ -155,8 +183,17 @@ For `jobs`:
 
 ```json
 [
-  {"id": 1, "job": "Data Engineer"},
-  {"id": 2, "job": "ML Engineer"}
+  {"id": 501, "job": "Data Engineer"},
+  {"id": 502, "job": "ML Engineer"}
+]
+```
+
+For `departments`:
+
+```json
+[
+  {"id": 901, "department": "II+D"},
+  {"id": 902, "department": "TI"}
 ]
 ```
 
@@ -165,18 +202,13 @@ For `hired_employees`:
 ```json
 [
   {
-    "id": 1,
-    "name": "John Doe",
-    "datetime": "2021-01-10T10:00:00Z",
-    "department_id": 1,
-    "job_id": 1
+    "id": 3000,
+    "name": "Sergio Gordon",
+    "datetime": "2025-06-01T10:00:00Z",
+    "department_id": 901,
+    "job_id": 501
   }
 ]
-```
-## Access Online
-
-🔗 [Open Render Deployment](https://globantchallenge.onrender.com/)
-
 
 ---
 ## 👤 Author

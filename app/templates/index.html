@@ -336,6 +336,21 @@
       </div>
     </details>
   </section>
+
+  <section class="section">
+    <details>
+      <summary>View Logs</summary>
+      <label for="log-select">Select Log File:</label>
+      <select id="log-select">
+        <option value="invalid_rows.log">Invalid rows in Csv</option>
+        <option value="api_invalid_rows.log">Invalid rows in Json</option>
+        <option value="json_columns_type_error.log">Json column types errors</option>
+        <option value="load_csv_errors.log">SQL and generic errors</option>
+      </select>
+      <button onclick="fetchLog()">Load Log</button>
+      <pre id="log-content" style="max-height: 400px; overflow-y: auto; background: #f4f4f4; padding: 1em; border: 1px solid #ccc;"></pre>
+    </details>
+  </section>
   
 </main>
 
@@ -372,42 +387,7 @@
       textarea.value = "";
     }
   }
-  function loadReport(endpoint, tableId, datefrom, dateto) {
-    const params = `?datefrom=${datefrom}&dateto=${dateto}`;
-
-    fetch(endpoint + params)
-      .then(res => res.json())
-      .then(data => {
-        const table = document.getElementById(tableId);
-        table.innerHTML = "";
-
-        if (data.length === 0) {
-          table.innerHTML = "<tr><td>No data</td></tr>";
-          return;
-        }
-
-        const headers = Object.keys(data[0]);
-        table.innerHTML += "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
-
-        data.forEach(row => {
-          table.innerHTML += "<tr>" + headers.map(h => `<td>${row[h]}</td>`).join('') + "</tr>";
-        });
-        Swal.close();
-      });
-  }
-
-  function refreshReport1() {
-    const datefrom = document.getElementById("datefrom_r1").value;
-    const dateto = document.getElementById("dateto_r1").value;
-    loadReport("/report/quarterly-hiring", "quarterly-report", datefrom, dateto);
-  }
-
-  function refreshReport2() {
-    const datefrom = document.getElementById("datefrom_r2").value;
-    const dateto = document.getElementById("dateto_r2").value;
-    loadReport("/report/above-average-hiring", "above-avg-report", datefrom, dateto);
-  }
-
+  
   function showLoading(message = 'Loading...') {
     const loader = document.getElementById('loading');
     if (loader) {
@@ -502,6 +482,74 @@
   }
 
   </script>
+
+<script>
+  function loadReport(endpoint, tableId, chartType, datefrom, dateto) {
+    const params = `?datefrom=${datefrom}&dateto=${dateto}`;
+
+    fetch(endpoint + params)
+      .then(res => res.json())
+      .then(data => {
+        // Load Table
+        const table = document.getElementById(tableId);
+        table.innerHTML = "";
+
+        if (!data || data.length === 0) {
+          table.innerHTML = "<tr><td>No data</td></tr>";
+        } else {
+          const headers = Object.keys(data[0]);
+          const headerRow = "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
+          const dataRows = data.map(row =>
+            "<tr>" + headers.map(h => `<td>${row[h]}</td>`).join('') + "</tr>"
+          ).join('');
+
+          table.innerHTML = headerRow + dataRows;
+        }
+
+        // Load Chart
+        if (chartType === "quarterly" && window.renderQuarterlyChart) {
+          window.renderQuarterlyChart(data);
+        } else if (chartType === "aboveAvg" && window.renderAboveAvgChart) {
+          window.renderAboveAvgChart(data);
+        }
+
+        Swal.close();
+      })
+      .catch(error => {
+        console.error("Error loading report:", error);
+        Swal.fire("Error", "Failed to load report", "error");
+      });
+  }
+
+  function refreshReport1() {
+    const from = document.getElementById("datefrom_r1").value;
+    const to = document.getElementById("dateto_r1").value;
+    loadReport("/report/quarterly-hiring", "quarterly-report", "quarterly", from, to);
+  }
+
+  function refreshReport2() {
+    const from = document.getElementById("datefrom_r2").value;
+    const to = document.getElementById("dateto_r2").value;
+    loadReport("/report/above-average-hiring", "above-avg-report", "aboveAvg", from, to);
+  }
+</script>
+
+<script>
+  function fetchLog() {
+    const selectedLog = document.getElementById("log-select").value;
+    fetch(`/logs/${selectedLog}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to load log file.");
+        return res.text();
+      })
+      .then(data => {
+        document.getElementById("log-content").textContent = data || "Log is empty.";
+      })
+      .catch(error => {
+        document.getElementById("log-content").textContent = "Error: " + error.message;
+      });
+  }
+</script>
   
       
   </body>
